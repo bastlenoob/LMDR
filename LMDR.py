@@ -68,109 +68,114 @@ async def testSpam(message, listeMessages, listeMentions):
 @bot.event
 async def on_message(message):
 	if not message.author.bot:
-		# Récupération des variables globales
-		global heureMess
-		global heureMent
-		global messLimit
-		global menLimit
-		global listeMessages
-		global listeMentions
-		global listeAvertissements
+		analyse = True
+		for role in message.author.roles:
+			if role.name == "Modérateurs Des Rêves" or role.name == "Dieux":
+				analyse = False
+		if analyse == True:
+			# Récupération des variables globales
+			global heureMess
+			global heureMent
+			global messLimit
+			global menLimit
+			global listeMessages
+			global listeMentions
+			global listeAvertissements
 
-		# Si aucun timer de message n'est lancé
-		if heureMess == '':
-			# Démarre le premier timer et ajoute le premier message à la liste des messages
-			heureMess = message.timestamp
-			listeMessages.append(message)
-		else:
-			# Récupération de la différence d'heure entre ce message et celui qui a déclenché le timer
-			diff = message.timestamp - heureMess
-			# Si ça moins longtemps que la durée définie
-			if diff <= messLimit:
-				# On ajoute le message à la liste
-				listeMessages.append(message)
-			# Sinon
-			else:
-				# Déclenche un nouveau timer
+			# Si aucun timer de message n'est lancé
+			if heureMess == '':
+				# Démarre le premier timer et ajoute le premier message à la liste des messages
 				heureMess = message.timestamp
-				# Supprime la liste des messages
-				listeMessages.clear()
-				print("J'oublie les messages")
-				print(listeMessages)
-				# Si un timer pour les mentions est en cours
-				if heureMent != '':
-					# Teste où en est le timer
-					diffMent = message.timestamp - heureMent
-					# Si le timer des mentions est fini
-					if diffMent > menLimit:
-						# Supprime la liste des mentions et prépare un nouveau timer
-						listeMentions.clear()
-						heureMent = ''
-						print("J'oublie les mentions")
-						print(listeMentions)
-
-			# Si le message contient une mention
-			if message.mentions:
-				# Si aucun timer en cours
-				if heureMent == '':
-					# Initialise un timer et ajoute le message à la liste des mentions
-					heureMent = message.timestamp
-					listeMentions.append(message)
+				listeMessages.append(message)
+			else:
+				# Récupération de la différence d'heure entre ce message et celui qui a déclenché le timer
+				diff = message.timestamp - heureMess
+				# Si ça moins longtemps que la durée définie
+				if diff <= messLimit:
+					# On ajoute le message à la liste
+					listeMessages.append(message)
 				# Sinon
 				else:
-					# Teste où en est le timer
-					diffMent = message.timestamp - heureMent
-					# Si le timer n'est pas terminé
-					if diffMent <= menLimit:
-						# Ajoute le message à la liste des mentions
-						listeMentions.append(message)
-					# Si le timer est terminé
-					else:
-						# En démarre un nouveau
-						heureMent = message.timestamp
-			# Appel la fonction testSpam en indiquand le message ainsi que les différentes listes
-			# Pour tester si un ban est mérité ou non
-			await testSpam(message, listeMessages, listeMentions)
+					# Déclenche un nouveau timer
+					heureMess = message.timestamp
+					# Supprime la liste des messages
+					listeMessages.clear()
+					print("J'oublie les messages")
+					print(listeMessages)
+					# Si un timer pour les mentions est en cours
+					if heureMent != '':
+						# Teste où en est le timer
+						diffMent = message.timestamp - heureMent
+						# Si le timer des mentions est fini
+						if diffMent > menLimit:
+							# Supprime la liste des mentions et prépare un nouveau timer
+							listeMentions.clear()
+							heureMent = ''
+							print("J'oublie les mentions")
+							print(listeMentions)
 
-			# Teste si l'utilisateur a envoyé un lien :
-			if "www." in message.content or "http" in message.content or "discord.gg" in message.content:
-				if message.channel.name != "youtube":
+				# Si le message contient une mention
+				if message.mentions:
+					# Si aucun timer en cours
+					if heureMent == '':
+						# Initialise un timer et ajoute le message à la liste des mentions
+						heureMent = message.timestamp
+						listeMentions.append(message)
+					# Sinon
+					else:
+						# Teste où en est le timer
+						diffMent = message.timestamp - heureMent
+						# Si le timer n'est pas terminé
+						if diffMent <= menLimit:
+							# Ajoute le message à la liste des mentions
+							listeMentions.append(message)
+						# Si le timer est terminé
+						else:
+							# En démarre un nouveau
+							heureMent = message.timestamp
+				# Appel la fonction testSpam en indiquand le message ainsi que les différentes listes
+				# Pour tester si un ban est mérité ou non
+				await testSpam(message, listeMessages, listeMentions)
+
+				# Teste si l'utilisateur a envoyé un lien :
+				if "www." in message.content or "http" in message.content or "discord.gg" in message.content:
+					if message.channel.name != "youtube":
+						# Teste la présence dans la liste des avertissements
+						present = False
+						
+						for i in listeAvertissements:
+							if i == message.author:
+								present = True
+						# Si il est présent, un avertissement a déjà eu lieu --> ban (Et suppression de la liste)
+						if present == True:
+							#await bot.ban(message.author, 1)
+							await bot.send_message(message.channel, "Donc là on part sur un kokoban sur : " + message.author.name)
+							listeAvertissements.remove(message.author)
+						# Sinon ajout dans la liste des avertissements
+						else:
+							listeAvertissements.append(message.author)
+							await bot.send_message(message.channel, "Un avertissement pour : " + message.author.name + " Il n'y en aura pas de second.")
+						# Supprime le message
+						await bot.delete_message(message)
+
+				# Si une pièce jointe (genre photo) avec le message
+				if message.attachments:
 					# Teste la présence dans la liste des avertissements
 					present = False
-					
 					for i in listeAvertissements:
 						if i == message.author:
 							present = True
-					# Si il est présent, un avertissement a déjà eu lieu --> ban (Et suppression de la liste)
+					# Si dans la liste, ban et retrait de la liste
 					if present == True:
-						#await bot.ban(message.author, 1)
+						await bot.ban(message.author, 1)
 						await bot.send_message(message.channel, "Donc là on part sur un kokoban sur : " + message.author.name)
 						listeAvertissements.remove(message.author)
-					# Sinon ajout dans la liste des avertissements
+					# Sinon ajout dans la liste
 					else:
 						listeAvertissements.append(message.author)
 						await bot.send_message(message.channel, "Un avertissement pour : " + message.author.name + " Il n'y en aura pas de second.")
 					# Supprime le message
 					await bot.delete_message(message)
-
-			# Si une pièce jointe (genre photo) avec le message
-			if message.attachments:
-				# Teste la présence dans la liste des avertissements
-				present = False
-				for i in listeAvertissements:
-					if i == message.author:
-						present = True
-				# Si dans la liste, ban et retrait de la liste
-				if present == True:
-					await bot.ban(message.author, 1)
-					await bot.send_message(message.channel, "Donc là on part sur un kokoban sur : " + message.author.name)
-					listeAvertissements.remove(message.author)
-				# Sinon ajout dans la liste
-				else:
-					listeAvertissements.append(message.author)
-					await bot.send_message(message.channel, "Un avertissement pour : " + message.author.name + " Il n'y en aura pas de second.")
-				# Supprime le message
-				await bot.delete_message(message)
 
 
 # ========================================================
