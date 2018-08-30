@@ -173,18 +173,18 @@ async def on_message(message):
 				await bot.delete_message(message)
 
 
-	# ========================================================
-	# Récupération du jeton dans le fichier "token.txt"
-	# ========================================================
-	empty = True
-	if os.path.isfile("token.txt"):
-		fichier = open("token.txt", "r")
-		token = fichier.read()
-		if token != '' :
-			empty = False
-		fichier.close()
+# ========================================================
+# Récupération du jeton dans le fichier "token.txt"
+# ========================================================
+empty = True
+if os.path.isfile("token.txt"):
+	fichier = open("token.txt", "r")
+	token = fichier.read()
+	if token != '' :
+		empty = False
+	fichier.close()
 
-	elif not os.path.isfile("token.txt") or empty == True:
-		print("Récupération du jeton impossible.")
-		exit()
+elif not os.path.isfile("token.txt") or empty == True:
+	print("Récupération du jeton impossible.")
+	exit()
 bot.run(token)
