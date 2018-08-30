@@ -13,6 +13,7 @@ messLimit = datetime.timedelta(0,20,0)
 menLimit = datetime.timedelta(0,40,0)
 listeMessages = []
 listeMentions = []
+listeAvertissements = []
 
 # Déclaration de la fonction de test
 async def testSpam(message, listeMessages, listeMentions):
@@ -42,15 +43,26 @@ async def testSpam(message, listeMessages, listeMentions):
 			# On incrémente le compteur de 1
 			cpt+=1
 	# Si l'auteur a écrit plus de un message
-	if cpt >= 1:
+	if cpt >= 2:
 		# On procède au bannissement
 		ban = True
 	# Si la sentence est tombée
 	if ban == True:
 		# On procède au bannissement
 		# Encore en tests, pas de bannissement effectif pour l'instant
-		await bot.send_message(message.channel, "AND HIS NAME IS JOHN CENA !!!")
-		await bot.send_message(message.channel, "Donc l'utilisateur qui spam est : " + message.author.name)
+		await bot.send_message(message.channel, "Bip, Boup ! Bot LMDR Bonjour, Veuillez cesser de Spam.")
+		await bot.send_message(message.channel, "Avertissement à la personne du nom de : " + message.author.name)
+		# Cherche si l'auteur du message est dans la liste des avertissements
+		for i in listeAvertissements:
+			if i == message.author:
+				present = True
+		# Si il est présent on part sur un ban avant de le retirer de la liste
+		if present == True:
+			#await bot.ban(message.author, 1)
+			await bot.send_message(message.channel, "Donc là on part sur un ban des familles dans la gueule de : ", message.author.name)
+			listeAvertissements.remove(message.author)
+		else:
+			listeAvertissements.append(message.author)
 
 # Quand un message est posté
 @bot.event
@@ -62,6 +74,7 @@ async def on_message(message):
 	global menLimit
 	global listeMessages
 	global listeMentions
+	global listeAvertissements
 
 	# Si aucun timer de message n'est lancé
 	if heureMess == '':
@@ -81,7 +94,7 @@ async def on_message(message):
 			heureMess = message.timestamp
 			# Supprime la liste des messages
 			listeMessages.clear()
-			print("I forgot everything")
+			print("J'oublie les messages")
 			print(listeMessages)
 			# Si un timer pour les mentions est en cours
 			if heureMent != '':
@@ -92,7 +105,7 @@ async def on_message(message):
 					# Supprime la liste des mentions et prépare un nouveau timer
 					listeMentions.clear()
 					heureMent = ''
-					print("I forgot everything")
+					print("J'oublie les mentions")
 					print(listeMentions)
 
 		# Si le message contient une mention
@@ -117,6 +130,40 @@ async def on_message(message):
 		# Appel la fonction testSpam en indiquand le message ainsi que les différentes listes
 		# Pour tester si un ban est mérité ou non
 		await testSpam(message, listeMessages, listeMentions)
+
+		# Teste si l'utilisateur a envoyé un lien :
+		if "www." in message.content or "http" in message.content or "discord.gg" in message.content:
+			if message.channel.name != "youtube":
+				present = False
+				
+				for i in listeAvertissements:
+					if i == message.author:
+						present = True
+				if present == True:
+					#await bot.ban(message.author, 1)
+					await bot.send_message(message.channel, "Donc là on part sur un kokoban sur : " + message.author.name)
+					listeAvertissements.remove(message.author)
+				else:
+					listeAvertissements.append(message.author)
+				print(message.channel.name)
+				await bot.delete_message(message)
+
+		if message.attachments:
+			present = False
+				
+			for i in listeAvertissements:
+				if i == message.author:
+					present = True
+			if present == True:
+				#await bot.ban(message.author, 1)
+				await bot.send_message(message.channel, "Donc là on part sur un kokoban sur : " + message.author.name)
+				listeAvertissements.remove(message.author)
+			else:
+				listeAvertissements.append(message.author)
+			print(message.channel.name)
+			await bot.delete_message(message)
+
+
 
 
 # ========================================================
