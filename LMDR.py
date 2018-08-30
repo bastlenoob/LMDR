@@ -51,7 +51,7 @@ async def testSpam(message, listeMessages, listeMentions):
 		# On procède au bannissement
 		# Encore en tests, pas de bannissement effectif pour l'instant
 		await bot.send_message(message.channel, "Bip, Boup ! Bot LMDR Bonjour, Veuillez cesser de Spam.")
-		await bot.send_message(message.channel, "Avertissement à la personne du nom de : " + message.author.name)
+		await bot.send_message(message.channel, "Un avertissement pour : " + message.author.name + " Il n'y en aura pas de second.")
 		# Cherche si l'auteur du message est dans la liste des avertissements
 		for i in listeAvertissements:
 			if i == message.author:
@@ -59,7 +59,7 @@ async def testSpam(message, listeMessages, listeMentions):
 		# Si il est présent on part sur un ban avant de le retirer de la liste
 		if present == True:
 			#await bot.ban(message.author, 1)
-			await bot.send_message(message.channel, "Donc là on part sur un ban des familles dans la gueule de : ", message.author.name)
+			await bot.send_message(message.channel, "Donc là on part sur un kokoban des familles dans la gueule de : ", message.author.name)
 			listeAvertissements.remove(message.author)
 		else:
 			listeAvertissements.append(message.author)
@@ -134,33 +134,41 @@ async def on_message(message):
 		# Teste si l'utilisateur a envoyé un lien :
 		if "www." in message.content or "http" in message.content or "discord.gg" in message.content:
 			if message.channel.name != "youtube":
+				# Teste la présence dans la liste des avertissements
 				present = False
 				
 				for i in listeAvertissements:
 					if i == message.author:
 						present = True
+				# Si il est présent, un avertissement a déjà eu lieu --> ban (Et suppression de la liste)
 				if present == True:
 					#await bot.ban(message.author, 1)
 					await bot.send_message(message.channel, "Donc là on part sur un kokoban sur : " + message.author.name)
 					listeAvertissements.remove(message.author)
+				# Sinon ajout dans la liste des avertissements
 				else:
 					listeAvertissements.append(message.author)
-				print(message.channel.name)
+					await bot.send_message(message.channel, "Un avertissement pour : " + message.author.name + " Il n'y en aura pas de second.")
+				# Supprime le message
 				await bot.delete_message(message)
 
+		# Si une pièce jointe (genre photo) avec le message
 		if message.attachments:
+			# Teste la présence dans la liste des avertissements
 			present = False
-				
 			for i in listeAvertissements:
 				if i == message.author:
 					present = True
+			# Si dans la liste, ban et retrait de la liste
 			if present == True:
 				#await bot.ban(message.author, 1)
 				await bot.send_message(message.channel, "Donc là on part sur un kokoban sur : " + message.author.name)
 				listeAvertissements.remove(message.author)
+			# Sinon ajout dans la liste
 			else:
 				listeAvertissements.append(message.author)
-			print(message.channel.name)
+				await bot.send_message(message.channel, "Un avertissement pour : " + message.author.name + " Il n'y en aura pas de second.")
+			# Supprime le message
 			await bot.delete_message(message)
 
 
