@@ -58,7 +58,7 @@ async def testSpam(message, listeMessages, listeMentions):
 				present = True
 		# Si il est présent on part sur un ban avant de le retirer de la liste
 		if present == True:
-			await bot.ban(message.author, 1)
+			#await bot.ban(message.author, 1)
 			await bot.send_message(message.channel, "Donc là on part sur un kokoban des familles dans la gueule de : ", message.author.name)
 			listeAvertissements.remove(message.author)
 		else:
